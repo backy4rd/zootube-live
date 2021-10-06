@@ -1,0 +1,31 @@
+diff --git a/node_modules/node-media-server/src/node_rtmp_session.js b/node_modules/node-media-server/src/node_rtmp_session.js
+index aad61e8..9b9dcd6 100644
+--- a/node_modules/node-media-server/src/node_rtmp_session.js
++++ b/node_modules/node-media-server/src/node_rtmp_session.js
+@@ -14,6 +14,7 @@ const NodeCoreUtils = require('./node_core_utils');
+ const NodeFlvSession = require('./node_flv_session');
+ const context = require('./node_core_ctx');
+ const Logger = require('./node_core_logger');
++const EventEmitter = require('events');
+ 
+ const N_CHUNK_STREAM = 8;
+ const RTMP_VERSION = 3;
+@@ -1045,14 +1046,16 @@ class NodeRtmpSession {
+     this.respondCreateStream(invokeMessage.transId);
+   }
+ 
+-  onPublish(invokeMessage) {
++  async onPublish(invokeMessage) {
+     if (typeof invokeMessage.streamName !== 'string') {
+       return;
+     }
+     this.publishStreamPath = '/' + this.appname + '/' + invokeMessage.streamName.split('?')[0];
+     this.publishArgs = QueryString.parse(invokeMessage.streamName.split('?')[1]);
+     this.publishStreamId = this.parserPacket.header.stream_id;
+-    context.nodeEvent.emit('prePublish', this.id, this.publishStreamPath, this.publishArgs);
++    const waiter = new EventEmitter();
++    context.nodeEvent.emit('prePublish', this.id, this.publishStreamPath, this.publishArgs, () => waiter.emit('done'));
++    await new Promise(resolve => waiter.once('done', resolve));
+     if (!this.isStarting) {
+       return;
+     }

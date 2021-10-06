@@ -1,0 +1,26 @@
+{
+  "name": "zootube-live",
+  "version": "1.0.0",
+  "description": "http and rtmp server",
+  "main": "index.js",
+  "scripts": {
+    "postinstall": "patch-package",
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/backy4rd/zootube-live.git"
+  },
+  "author": "backy4rd",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/backy4rd/zootube-live/issues"
+  },
+  "homepage": "https://github.com/backy4rd/zootube-live#readme",
+  "dependencies": {
+    "node-media-server": "^2.3.8",
+    "patch-package": "^6.4.7",
+    "request": "^2.88.2",
+    "request-promise": "^4.2.6"
+  }
+}
