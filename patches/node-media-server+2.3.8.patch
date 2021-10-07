@@ -1,3 +1,22 @@
+diff --git a/node_modules/node-media-server/src/node_http_server.js b/node_modules/node-media-server/src/node_http_server.js
+index 6837e3f..3d9c425 100644
+--- a/node_modules/node-media-server/src/node_http_server.js
++++ b/node_modules/node-media-server/src/node_http_server.js
+@@ -35,14 +35,6 @@ class NodeHttpServer {
+ 
+     app.use(bodyParser.urlencoded({ extended: true }));
+ 
+-    app.all('*', (req, res, next) => {
+-      res.header('Access-Control-Allow-Origin', this.config.http.allow_origin);
+-      res.header('Access-Control-Allow-Headers', 'Content-Type,Content-Length, Authorization, Accept,X-Requested-With');
+-      res.header('Access-Control-Allow-Methods', 'PUT,POST,GET,DELETE,OPTIONS');
+-      res.header('Access-Control-Allow-Credentials', true);
+-      req.method === 'OPTIONS' ? res.sendStatus(200) : next();
+-    });
+-
+     app.get('*.flv', (req, res, next) => {
+       req.nmsConnectionType = 'http';
+       this.onConnect(req, res);
 diff --git a/node_modules/node-media-server/src/node_rtmp_session.js b/node_modules/node-media-server/src/node_rtmp_session.js
 index aad61e8..9b9dcd6 100644
 --- a/node_modules/node-media-server/src/node_rtmp_session.js
