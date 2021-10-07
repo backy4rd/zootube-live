@@ -1,19 +1,31 @@
 const NodeMediaServer = require('node-media-server');
 const auth = require('./auth');
 
-const PORT = parseInt(process.env.PORT) || 80;
+const HTTP_PORT = parseInt(process.env.PORT) || 80;
+const RTMP_PORT = parseInt(process.env.PORT) || 1935;
 
 const config = {
   // logType: 0,
   rtmp: {
-    port: 1935,
+    port: RTMP_PORT,
     chunk_size: 60000,
     gop_cache: true,
     ping: 30,
     ping_timeout: 60,
   },
   http: {
-    port: PORT,
+    port: HTTP_PORT,
+    mediaroot: './media',
+  },
+  trans: {
+    ffmpeg: '/usr/bin/ffmpeg',
+    tasks: [
+      {
+        app: 'live',
+        hls: true,
+        hlsFlags: '[hls_time=2:hls_list_size=0:hls_flags=delete_segments]',
+      },
+    ],
   },
 };
 
