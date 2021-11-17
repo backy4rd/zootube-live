@@ -1,8 +1,9 @@
+const path = require('path');
+const fs = require('fs');
 const NodeMediaServer = require('node-media-server');
 const auth = require('./auth');
-
-const HTTP_PORT = parseInt(process.env.PORT) || 80;
-const RTMP_PORT = parseInt(process.env.PORT) || 1935;
+const uploader = require('./uploader');
+const { HTTP_PORT, RTMP_PORT, FFMPEG, MEDIA_ROOT, APP_NAME } = require('./env');
 
 const config = {
   // logType: 0,
@@ -15,13 +16,13 @@ const config = {
   },
   http: {
     port: HTTP_PORT,
-    mediaroot: './media',
+    mediaroot: MEDIA_ROOT,
   },
   trans: {
-    ffmpeg: '/usr/bin/ffmpeg',
+    ffmpeg: FFMPEG,
     tasks: [
       {
-        app: 'live',
+        app: APP_NAME,
         hls: true,
         hlsFlags: '[hls_time=6:hls_list_size=0:hls_flags=delete_segments]',
       },
@@ -30,18 +31,29 @@ const config = {
 };
 
 const nms = new NodeMediaServer(config);
+fs.rmSync(path.resolve(__dirname, MEDIA_ROOT), { recursive: true });
 nms.run();
 
 nms.on('prePublish', async (id, streamPath, args, next) => {
   const session = nms.getSession(id);
   const streamId = streamPath.slice(streamPath.lastIndexOf('/') + 1);
   const streamKey = args.key;
+  const hlsPath = path.join(__dirname, MEDIA_ROOT, APP_NAME, streamId);
+
   if (!streamId || !streamKey) {
     session.reject();
+    return next();
+  }
+  if (fs.existsSync(hlsPath)) {
+    if (fs.readdirSync(hlsPath).length !== 0) {
+      session.reject();
+      return next();
+    }
   }
   try {
     await auth.goLive(streamId, streamKey);
   } catch (e) {
+    console.log(e);
     session.reject();
   } finally {
     next();
@@ -51,9 +63,18 @@ nms.on('prePublish', async (id, streamPath, args, next) => {
 nms.on('donePublish', async (id, streamPath, args) => {
   const streamId = streamPath.slice(streamPath.lastIndexOf('/') + 1);
   const streamKey = args.key;
+  const hlsPath = path.join(__dirname, MEDIA_ROOT, APP_NAME, streamId);
+
   try {
     await auth.offLive(streamId, streamKey);
+    const videoPath = await uploader.mergeVideo(hlsPath);
+    await uploader.uploadStreamedVideo({ streamId, streamKey, videoPath });
   } catch (e) {
     console.log(e);
+  } finally {
+    fs.readdir(hlsPath, (err, files) => {
+      if (err) return;
+      files.forEach((filename) => fs.unlinkSync(path.join(hlsPath, filename)));
+    });
   }
 });
