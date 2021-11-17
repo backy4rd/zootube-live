@@ -31,7 +31,9 @@ const config = {
 };
 
 const nms = new NodeMediaServer(config);
-fs.rmSync(path.resolve(__dirname, MEDIA_ROOT), { recursive: true });
+if (fs.existsSync(path.resolve(__dirname, MEDIA_ROOT))) {
+  fs.rmSync(path.resolve(__dirname, MEDIA_ROOT), { recursive: true });
+}
 nms.run();
 
 nms.on('prePublish', async (id, streamPath, args, next) => {
