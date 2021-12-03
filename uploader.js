@@ -4,7 +4,7 @@ const path = require('path');
 const { spawn } = require('child_process');
 const request = require('request-promise');
 
-const { API_SERVER_ENDPOINT, FFMPEG } = require('./env');
+const { API_SERVER_ENDPOINT, MEDIA_SERVER_ENDPOINT, FFMPEG } = require('./env');
 
 module.exports.mergeVideo = function (hlsPath) {
   const m3u8Path = path.join(hlsPath, 'index.m3u8');
@@ -23,19 +23,28 @@ module.exports.mergeVideo = function (hlsPath) {
   });
 };
 
-module.exports.uploadStreamedVideo = function ({
-  streamId,
-  streamKey,
-  videoPath,
-}) {
-  return request.post(API_SERVER_ENDPOINT + '/streams/', {
+module.exports.uploadVideo = function (videoPath) {
+  return request.post(MEDIA_SERVER_ENDPOINT + '/videos', {
+    json: true,
     headers: {
       'Content-Type': 'multipart/form-data',
     },
     formData: {
+      video: fs.createReadStream(videoPath),
+    },
+  });
+};
+
+module.exports.processStreamedVideo = function ({
+  streamId,
+  streamKey,
+  video,
+}) {
+  return request.post(API_SERVER_ENDPOINT + '/streams/', {
+    form: {
       stream_id: streamId,
       stream_key: streamKey,
-      video: fs.createReadStream(videoPath),
+      video: video,
     },
   });
 };

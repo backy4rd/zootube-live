@@ -70,9 +70,14 @@ nms.on('donePublish', async (id, streamPath, args) => {
   try {
     await auth.offLive(streamId, streamKey);
     const videoPath = await uploader.mergeVideo(hlsPath);
-    await uploader.uploadStreamedVideo({ streamId, streamKey, videoPath });
+    const videoResponse = await uploader.uploadVideo(videoPath);
+    await uploader.processStreamedVideo({
+      streamId,
+      streamKey,
+      video: videoResponse.data.video,
+    });
   } catch (e) {
-    console.log(e);
+    console.log(e.message);
   } finally {
     fs.readdir(hlsPath, (err, files) => {
       if (err) return;
