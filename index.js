@@ -3,7 +3,7 @@ const fs = require('fs');
 const NodeMediaServer = require('node-media-server');
 const auth = require('./auth');
 const uploader = require('./uploader');
-const { HTTP_PORT, RTMP_PORT, FFMPEG, MEDIA_ROOT, APP_NAME } = require('./env');
+const { HTTP_PORT, RTMP_PORT, FFMPEG, MEDIA_ROOT, APP_NAME, HLS_TIME } = require('./env');
 
 const config = {
   // logType: 0,
@@ -24,7 +24,7 @@ const config = {
       {
         app: APP_NAME,
         hls: true,
-        hlsFlags: '[hls_time=6:hls_list_size=0:hls_flags=delete_segments]',
+        hlsFlags: `[hls_time=${HLS_TIME}:hls_list_size=0:hls_flags=delete_segments]`,
       },
     ],
   },
